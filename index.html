@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Sudoku Solver</title>
+    <link rel="icon" type="image/x-icon" href="/images/pastime.png">
+    <style>
+        .user-input {
+            color: red;
+        }
+    </style>
+    <script>
+        // make sure the values are valid
+        function validateInput(event){
+            const input = event.target;
+            const value = input.value;
+            if (value < 1 || value > 9) {
+                input.value = '';
+            } else {
+                input.classList.add('user-input');
+            }
+        }
+        
+        // reset the table
+        function reset() {
+            createSudokuTable(); // Recreate the table
+        }
+
+        // create the sudoku table
+        function createSudokuTable(){
+            const table = document.getElementById('table');
+            table.innerHTML = ''; // Clear existing table content
+            for (let i = 0; i < 9; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < 9; j++) {
+                    const cell = document.createElement('td');
+                    cell.className = 'cell';
+
+                    // Adding thick borders around the 3*3 boxes
+                    if (i % 3 === 0 && i !== 0) cell.classList.add('thick-top-border');
+                    if (j % 3 === 0 && j !== 0) cell.classList.add('thick-left-border');
+
+                    const input = document.createElement('input');
+                    input.type = 'number';
+                    input.oninput = validateInput;
+
+                    // Adding Custom Variables
+                    input.setAttribute('data-index', i * 9 + j);
+                    input.setAttribute('data-row', i);
+                    input.setAttribute('data-col', j);
+
+                    cell.appendChild(input);
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+        }
+
+        // index --> row, column
+        function i2rc(index){
+            return {row: Math.floor(index/9), col: index % 9};
+        }
+
+        // row, col --> index
+        function rc2i(row, col){
+            return row * 9 + col;
+        }
+        
+        // gets the choices
+        function getChoices(board, index){
+            let choices = [];
+            for(let value = 1; value <= 9; ++value){
+                if(acceptable(board, index, value)){
+                    choices.push(value);
+                }
+            }
+            return choices;            
+        }
+
+        // check if the proposed value is acceptable
+        function acceptable(board, index, value){
+            let {row, col} = i2rc(index);
+
+            // check if number is in col
+            for(let r = 0; r < 9; ++r)
+                if(board[rc2i(r, col)] == value) return false;
+
+            // check if number is in row
+            for(let c = 0; c < 9; ++c)
+                if(board[rc2i(row, c)] == value) return false;
+
+            // check if number is in 3*3
+            let r1 = Math.floor(row / 3) * 3;
+            let c1 = Math.floor(col / 3) * 3;
+            for(let r = r1; r < r1 + 3; ++r){
+                for(let c = c1; c < c1 + 3; ++c){
+                    if(board[rc2i(r, c)] == value) return false;
+                }
+            }
+            // if no conflicts
+            return true;
+        }
+
+        // read all the inputs in the sudoku board
+        function readBoard(){
+            const board = [];
+            const inputs = document.querySelectorAll('#table input');
+            inputs.forEach(input => {
+                board.push(input.value ? parseInt(input.value) : 0);
+            });
+            return board;
+        }
+
+        // update the inputs with the solved board
+        function updateBoard(board, userInputs = []) {
+            const inputs = document.querySelectorAll('#table input');
+            inputs.forEach((input, index) => {
+                if (userInputs.includes(index)) {
+                    input.value = board[index] || '';
+                    if (board[index] !== 0) {
+                        input.classList.add('user-input');
+                    }
+                } else {
+                    input.value = board[index] || '';
+                    input.classList.remove('user-input');
+                }
+            });
+        }
+
+        // solve function
+        function solve(){
+            const board = readBoard();
+            const initialInputs = Array.from(document.querySelectorAll('#table input'))
+                .map((input, index) => input.value ? null : index)
+                .filter(index => index !== null);
+
+            if (solveBoard(board)) {
+                updateBoard(board, initialInputs);
+            } else {
+                alert("No solution found");
+            }
+        }
+
+        // backtracking solve helper function
+        function solveBoard(board, index = 0) {
+            if (index === 81) return true;
+            if (board[index] !== 0) return solveBoard(board, index + 1);
+
+            // Create an array of numbers 1-9 and shuffle it
+            const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+            for (let i = numbers.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [numbers[i], numbers[j]] = [numbers[j], numbers[i]];
+            }
+
+            for (let value of numbers) {
+                if (acceptable(board, index, value)) {
+                    board[index] = value;
+                    if (solveBoard(board, index + 1)) return true;
+                    board[index] = 0;
+                }
+            }
+            return false;
+        }
+
+        // generate a complete sudoku board
+        function generateCompleteBoard() {
+            const board = new Array(81).fill(0);
+            solveBoard(board);
+            return board;
+        }
+
+        // remove numbers to create a puzzle
+        function createPuzzle(board, holes = 40) {
+            const puzzle = board.slice();
+            let attempts = holes;
+
+            while (attempts > 0) {
+                const index = Math.floor(Math.random() * 81);
+                if (puzzle[index] !== 0) {
+                    const backup = puzzle[index];
+                    puzzle[index] = 0;
+
+                    // Create a copy to validate if it still has a unique solution
+                    const copy = puzzle.slice();
+                    if (countSolutions(copy) !== 1) {
+                        puzzle[index] = backup;
+                    } else {
+                        attempts--;
+                    }
+                }
+            }
+            return puzzle;
+        }
+
+        // generate and display a sudoku puzzle
+        function generateSudoku() {
+            const completeBoard = generateCompleteBoard();
+            const puzzleBoard = createPuzzle(completeBoard);
+            updateBoard(puzzleBoard);
+        }
+
+        // Count the number of solutions for a given board
+        function countSolutions(board) {
+            let solutions = 0;
+
+            function solve(board, index = 0) {
+                if (index === 81) {
+                    solutions++;
+                    return;
+                }
+                if (board[index] !== 0) {
+                    solve(board, index + 1);
+                    return;
+                }
+
+                for (let value = 1; value <= 9; value++) {
+                    if (acceptable(board, index, value)) {
+                        board[index] = value;
+                        solve(board, index + 1);
+                        board[index] = 0;
+                        if (solutions > 1) return;
+                    }
+                }
+            }
+
+            solve(board);
+            return solutions;
+        }
+
+    </script>
+</head>
+<body onload="createSudokuTable()">
+    <h1 class=header>Sudoku Solver</h1>
+    <div class="buttons">
+        <button class="generate" onclick="generateSudoku()">Generate Sudoku</button>
+        <button class="solve" onclick="solve()">Solve</button>
+        <button class="reset" onclick="reset()">Reset</button>
+    </div>
+    <table class="sudoku" id="table">
+    </table>
+    <div class="info">Using the formula from <a href="https://en.wikipedia.org/wiki/Brute-force_search#Basic_algorithm" target="_blank">here</a>.</div>
+</body>
+</html>

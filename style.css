@@ -1,0 +1,96 @@
+body {
+    background-color: #EFEEE8;
+}
+
+
+
+h1 {
+   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+   text-align: center;
+}
+
+.cell input {
+    display: inline-block;
+    
+    /*border: 1px solid black;*/
+    width: 40px;
+    height: 40px;
+
+    text-align: center;
+    font-size: 30px;
+}
+
+.thick-border {
+  border: 2px solid black;
+}
+.thick-top-border {
+  border-top: 4px solid black;
+}
+.thick-left-border {
+  border-left: 4px solid black;
+}
+.thick-bottom-border {
+  border-bottom: 4px solid black;
+}
+.thick-right-border {
+  border-right: 4px solid black;
+}
+
+table {
+    margin:1em auto;
+    border:2px solid black
+  }
+  td {
+    height:30px;
+    width:30px;
+    border:1px solid;
+    text-align:center;
+  }
+  td:first-child {
+    border-left:solid;
+  }
+  td:nth-child(3n) {
+    border-right:solid ;
+  }
+  tr:first-child {
+    border-top:solid;
+  }
+  tr:nth-child(3n) td {
+    border-bottom:solid ;
+  }
+
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.buttons {
+    text-align: center;
+    margin: auto;
+}
+
+button {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    text-align: center;
+    padding: 10px 20px;
+    border-radius: 8px;
+    color:black;
+    border: 1.5px solid rgb(138, 138, 138);
+}
+button:hover {
+    box-shadow: -2px 2px 5px 0 rgba(0,0,0,0.24)
+}
+
+.info {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /*border:1px solid green;*/
+    padding:10px;
+    height: 100px;
+    width: 500px;
+    text-align: center;
+    margin: auto;
+}
+
+.generated-number {
+  color: red;
+}
